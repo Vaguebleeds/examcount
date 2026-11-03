@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<meta name="description" content="November 2026 exam countdown">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Exam Countdown</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--card:#151f30;--muted:#9aa9bd;--accent:#8ab4ff;--line:#28364b}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101b30,#090e18 65%);color:#f4f7fc;font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+main{width:min(620px,100%);margin:auto;padding:24px 16px 40px}
+header{padding:22px 20px;border:1px solid var(--line);background:#151f30;border-radius:20px;margin-bottom:22px}
+.eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+h1{font-size:28px;margin:7px 0 18px}.topline{display:flex;justify-content:space-between;align-items:center}
+#now{font-size:13px;color:#d5dfef}.count{font-weight:750;font-size:20px}
+.section{display:flex;justify-content:space-between;align-items:center;margin:0 3px 12px}
+.section h2{font-size:16px;margin:0}.section span{font-size:12px;color:var(--muted)}
+.exam{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:10px 0}
+.exam.next{border-color:var(--accent);box-shadow:0 0 0 1px #8ab4ff22}
+.examhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.name{font-size:17px;font-weight:700}.date,.fullname{font-size:12px;color:var(--muted);margin-top:3px}
+.tag{font-size:10px;letter-spacing:.5px;padding:6px 9px;border-radius:20px;background:#26354b;color:#c8d8f0;white-space:nowrap}
+.next .tag{color:#b9d3ff;background:#263e62}
+.timer{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.unit{background:#0e1726;border-radius:10px;text-align:center;padding:10px 3px}
+.num{font-size:clamp(21px,6vw,29px);font-weight:750;font-variant-numeric:tabular-nums}
+.label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.done{margin-top:15px;color:#a8b5c7;font-size:13px}
+footer{text-align:center;color:var(--muted);font-size:11px;margin-top:22px;line-height:1.6}
+</style>
+</head>
+<body>
+<main>
+<header>
+ <div class="topline"><div class="eyebrow">Your examination schedule</div><div style="font-size:25px">📚</div></div>
+ <h1>November Exams</h1>
+ <div class="topline"><div><div class="eyebrow">Current time · IST</div><div id="now">Loading…</div></div><div style="text-align:right"><div class="eyebrow">Exams</div><div class="count">05</div></div></div>
+</header>
+<div class="section"><h2>Upcoming examinations</h2><span>17 – 25 November</span></div>
+<div id="list"></div>
+<footer>Countdowns target 12:00 AM at the start of each exam date.<br>All times are based on India Standard Time.</footer>
+</main>
+<script>
+const exams=[
+ {day:17,name:"MFCS",full:"Mathematical Foundations of Computer Science",icon:"📐"},
+ {day:19,name:"OS",full:"Operating Systems",icon:"💻"},
+ {day:20,name:"OS Lab",full:"Operating Systems Laboratory",icon:"🧪"},
+ {day:23,name:"Computer Networks",full:"Computer Networks",icon:"🌐"},
+ {day:25,name:"TOC",full:"Theory of Computation",icon:"🧠"}
+];
+const dateFor=d=>new Date(2026,10,d,0,0,0);
+const pad=n=>String(n).padStart(2,"0");
+const list=document.getElementById("list");
+function update(){
+ const now=new Date();
+ document.getElementById("now").textContent=now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:true});
+ const next=exams.find(e=>dateFor(e.day)>now);
+ list.innerHTML="";
+ exams.forEach(e=>{
+  const diff=dateFor(e.day)-now, done=diff<=0, active=next===e;
+  const d=Math.floor(Math.max(0,diff)/86400000);
+  const h=Math.floor(Math.max(0,diff)%86400000/3600000);
+  const m=Math.floor(Math.max(0,diff)%3600000/60000);
+  const s=Math.floor(Math.max(0,diff)%60000/1000);
+  const card=document.createElement("section");
+  card.className="exam"+(active?" next":"");
+  card.innerHTML=`<div class="examhead"><div><div class="name">${e.icon} ${e.name}</div><div class="fullname">${e.full}</div><div class="date">November ${e.day}, 2026</div></div><div class="tag">${done?"DATE REACHED":active?"NEXT UP":"UPCOMING"}</div></div>
+  ${done?'<div class="done">Exam date has arrived ✓</div>':`<div class="timer">
+  <div class="unit"><div class="num">${d}</div><div class="label">Days</div></div>
+  <div class="unit"><div class="num">${pad(h)}</div><div class="label">Hours</div></div>
+  <div class="unit"><div class="num">${pad(m)}</div><div class="label">Minutes</div></div>
+  <div class="unit"><div class="num">${pad(s)}</div><div class="label">Seconds</div></div>
+  </div>`}`;
+  list.appendChild(card);
+ });
+}
+update();setInterval(update,1000);
+if("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("./sw.js").catch(()=>{});
+</script>
+</body></html>
